@@ -186,7 +186,3 @@ pronto-in-tavola/
 
 - LinkedIn: [Isaac Franck Tiensi Happi](https://www.linkedin.com/in/isaac-franck-tiensi-happi-2b647022a/)
 - Email: cunegohappi@gmail.com
-
----
-
-*This project was built as part of a web development course at Engim Torino Artigianelli (600 hours).*
