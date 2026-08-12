@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pronto in Tavola — Login</title>
+  <link rel="stylesheet" href="/static/stile.css">
+  <style>
+    /* ── SFONDO CON PATTERN A QUADRETTI (come nel mockup) ──────*/
+    .pagina-login {
+      min-height: calc(100vh - 64px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      /* Pattern a quadretti con gradiente */
+      background-color: var(--crema);
+      background-image:
+        repeating-linear-gradient(
+          45deg,
+          rgba(139,58,42,0.05) 0px, rgba(139,58,42,0.05) 2px,
+          transparent 2px, transparent 12px
+        );
+    }
+
+    /* ── CARD DEL FORM ─────────────────────────────────────────
+       Il riquadro bianco con bordo a quadretti del mockup
+    */
+    .login-card {
+      background: var(--crema-card);
+      border: 3px solid var(--bordo);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 8px 32px rgba(139,58,42,0.10);
+      /* Bordo decorativo a quadretti come nel mockup */
+      outline: 8px solid transparent;
+      outline-offset: -3px;
+    }
+
+    /* Intestazione della card */
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.9rem;
+      color: var(--testo);
+      margin-bottom: 0.3rem;
+    }
+
+    .login-header p {
+      color: var(--testo-light);
+      font-size: 0.9rem;
+    }
+
+    /* ── TAB "Accedi" / "Registrati" ──────────────────────────
+       Due pulsanti in cima che mostrano/nascondono i form
+    */
+    .tab-gruppo {
+      display: flex;
+      gap: 0;
+      margin-bottom: 1.8rem;
+      border: 1.5px solid var(--bordo);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 0.65rem;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--testo-light);
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* Tab attivo: sfondo ruggine */
+    .tab-btn.attivo {
+      background: var(--ruggine);
+      color: var(--bianco);
+    }
+
+    /* ── FORM NASCOSTO/VISIBILE ────────────────────────────────
+       display:none = nascosto, display:block = visibile
+       Alternato dal JavaScript in basso
+    */
+    .form-sezione { display: none; }
+    .form-sezione.visibile { display: block; }
+
+    /* Nota sotto il bottone */
+    .nota {
+      font-size: 0.78rem;
+      color: var(--testo-light);
+      text-align: center;
+      margin-top: 0.8rem;
+    }
+
+    /* Icone decorative coltello e forchetta come nel mockup */
+    .icone-deco {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 2rem;
+      opacity: 0.15;
+      margin-bottom: 0.5rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR ──────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">Pronto in Tavola</a>
+    <ul class="navbar-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/login" class="attivo" id="link-login">Login</a></li>
+      <li><a href="/menu">Menu</a></li>
+      <li><a href="/carrello">Carrello</a></li>
+      <li><a id="link-logout" onclick="logout()"></a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <div class="pagina-login">
+      <div class="login-card">
+
+        <!-- Icone decorative -->
+        <div class="icone-deco">
+          <span>🍴</span>
+          <span>🍷</span>
+        </div>
+
+        <div class="login-header">
+          <h1>Accedi</h1>
+          <p>Entra nel tuo account o registrati</p>
+        </div>
+
+        <!-- Messaggi di feedback (mostrati da JS) -->
+        <div id="msg-errore"   class="msg msg-errore"></div>
+        <div id="msg-successo" class="msg msg-successo"></div>
+
+        <!-- ── TAB: ACCEDI / REGISTRATI ──────────────────────-->
+        <div class="tab-gruppo">
+          <!-- onclick chiama mostraTab() definita in basso -->
+          <button class="tab-btn attivo" onclick="mostraTab('login')">
+            Accedi
+          </button>
+          <button class="tab-btn" onclick="mostraTab('registrati')">
+            Registrati
+          </button>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════
+             FORM LOGIN
+             Visibile di default (classe "visibile")
+        ══════════════════════════════════════════════════ -->
+        <div id="form-login" class="form-sezione visibile">
+
+          <div class="form-gruppo">
+            <label for="login-email">Email *</label>
+            <input
+              type="email"
+              id="login-email"
+              placeholder="la-tua@email.com"
+              required
+            >
+          </div>
+
+          <div class="form-gruppo">
+            <label for="login-password">Password *</label>
+            <input
+              type="password"
+              id="login-password"
+              placeholder="La tua password"
+              required
+            >
+          </div>
+
+          <!--
+            onclick chiama faiLogin() definita in basso.
+            Non usiamo <form> con action perché gestiamo
+            tutto con JavaScript e fetch()
+          -->
+          <button
+            class="btn btn-primario btn-pieno mt-2"
+            onclick="faiLogin()"
+            id="btn-login"
+          >
+            Accedi
+          </button>
+
+          <p class="nota mt-1">
+            Il tuo nome del profilo non verrà condiviso.
+            Non inviare mai la tua password ad altri.
+          </p>
+        </div>
+
+        <!-- ══════════════════════════════════════════════════
+             FORM REGISTRAZIONE
+             Nascosto di default (senza classe "visibile")
+        ══════════════════════════════════════════════════ -->
+        <div id="form-registrati" class="form-sezione">
+
+          <div class="form-gruppo">
+            <label for="reg-nome">Nome completo *</label>
+            <input
+              type="text"
+              id="reg-nome"
+              placeholder="Mario Rossi"
+              required
+            >
+          </div>
+
+          <div class="form-gruppo">
+            <label for="reg-email">Email *</label>
+            <input
+              type="email"
+              id="reg-email"
+              placeholder="la-tua@email.com"
+              required
+            >
+          </div>
+
+          <div class="form-gruppo">
+            <label for="reg-password">Password * (min. 6 caratteri)</label>
+            <input
+              type="password"
+              id="reg-password"
+              placeholder="Scegli una password"
+              required
+            >
+          </div>
+
+          <button
+            class="btn btn-primario btn-pieno mt-2"
+            onclick="faiRegistrazione()"
+            id="btn-registrati"
+          >
+            Crea account
+          </button>
+
+          <p class="nota mt-1">
+            Registrandoti accetti i nostri termini di servizio.
+          </p>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <!-- FOOTER ──────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-sezione">
+        <h4>Pronto in Tavola</h4>
+        <p>Osteria da asporto — P.IVA: 12345678901</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Contatti</h4>
+        <p>Via Po, 42 — +39 347 654 3210</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Orari</h4>
+        <p>Lun: Chiuso — Mar/Dom: 12:00–15:00 / 18:30–22:00</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Legale</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/api.js"></script>
+  <script>
+
+    // ── AGGIORNA NAVBAR ──────────────────────────────────────
+    aggiornaNavabar();
+
+    // Se l'utente è già loggato, lo mandiamo direttamente al menu
+    if (eLoggato()) {
+      window.location.href = "menu.html";
+    }
+
+
+    // ── FUNZIONI HELPER UI ───────────────────────────────────
+
+    // Mostra un messaggio di errore rosso
+    function mostraErrore(testo) {
+      const el = document.getElementById("msg-errore");
+      el.textContent = testo;
+      el.style.display = "block";
+      document.getElementById("msg-successo").style.display = "none";
+    }
+
+    // Mostra un messaggio di successo verde
+    function mostraSuccesso(testo) {
+      const el = document.getElementById("msg-successo");
+      el.textContent = testo;
+      el.style.display = "block";
+      document.getElementById("msg-errore").style.display = "none";
+    }
+
+    // Nasconde entrambi i messaggi
+    function nascondiMsg() {
+      document.getElementById("msg-errore").style.display   = "none";
+      document.getElementById("msg-successo").style.display = "none";
+    }
+
+
+    // ── SWITCH TAB (Accedi / Registrati) ─────────────────────
+    function mostraTab(quale) {
+      // Nascondiamo tutti e due i form
+      document.getElementById("form-login").classList.remove("visibile");
+      document.getElementById("form-registrati").classList.remove("visibile");
+
+      // Rimuoviamo "attivo" da tutti i tab
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("attivo"));
+
+      // Mostriamo solo quello scelto
+      if (quale === "login") {
+        document.getElementById("form-login").classList.add("visibile");
+        document.querySelectorAll(".tab-btn")[0].classList.add("attivo");
+      } else {
+        document.getElementById("form-registrati").classList.add("visibile");
+        document.querySelectorAll(".tab-btn")[1].classList.add("attivo");
+      }
+
+      nascondiMsg();
+    }
+
+
+    // ── FUNZIONE LOGIN ────────────────────────────────────────
+    /*
+      1. Legge email e password dai campi input
+      2. Chiama POST /auth/login tramite api.js
+      3. Se ok: salva il token e va al menu
+      4. Se errore: mostra il messaggio in rosso
+    */
+    async function faiLogin() {
+      nascondiMsg();
+
+      const email    = document.getElementById("login-email").value.trim();
+      const password = document.getElementById("login-password").value;
+
+      // Validazione base lato frontend (prima di chiamare il server)
+      if (!email || !password) {
+        mostraErrore("Inserisci email e password.");
+        return;
+      }
+
+      // Disabilitiamo il bottone per evitare doppio click
+      const btn = document.getElementById("btn-login");
+      btn.disabled    = true;
+      btn.textContent = "Accesso in corso...";
+
+      try {
+        // Chiamata al backend: POST /auth/login
+        const risposta = await Auth.login(email, password);
+
+        // Il server ci restituisce { token, utente }
+        // Salviamo entrambi nel localStorage tramite api.js
+        salvaToken(risposta.token, risposta.utente);
+
+        mostraSuccesso(`Benvenuto, ${risposta.utente.nome}! Reindirizzamento...`);
+
+        // Aspettiamo 1 secondo poi andiamo al menu
+        setTimeout(() => {
+          window.location.href = "menu.html";
+        }, 1000);
+
+      } catch (errore) {
+        // L'errore viene lanciato da chiama() in api.js
+        // se il server risponde con 4xx o 5xx
+        mostraErrore(errore.message);
+        btn.disabled    = false;
+        btn.textContent = "Accedi";
+      }
+    }
+
+
+    // ── FUNZIONE REGISTRAZIONE ────────────────────────────────
+    /*
+      1. Legge nome, email, password
+      2. Chiama POST /auth/registrati
+      3. Se ok: mostra successo e passa al tab login
+      4. Se errore: mostra il messaggio
+    */
+    async function faiRegistrazione() {
+      nascondiMsg();
+
+      const nome     = document.getElementById("reg-nome").value.trim();
+      const email    = document.getElementById("reg-email").value.trim();
+      const password = document.getElementById("reg-password").value;
+
+      if (!nome || !email || !password) {
+        mostraErrore("Compila tutti i campi obbligatori.");
+        return;
+      }
+
+      if (password.length < 6) {
+        mostraErrore("La password deve avere almeno 6 caratteri.");
+        return;
+      }
+
+      const btn = document.getElementById("btn-registrati");
+      btn.disabled    = true;
+      btn.textContent = "Registrazione in corso...";
+
+      try {
+        // Chiamata al backend: POST /auth/registrati
+        await Auth.registrati(nome, email, password);
+
+        mostraSuccesso("Account creato! Ora puoi accedere con le tue credenziali.");
+
+        // Torniamo al tab login dopo 1.5 secondi
+        setTimeout(() => mostraTab("login"), 1500);
+
+      } catch (errore) {
+        mostraErrore(errore.message);
+      } finally {
+        // "finally" viene eseguito sempre, sia in caso di
+        // successo che di errore — riabilitiamo il bottone
+        btn.disabled    = false;
+        btn.textContent = "Crea account";
+      }
+    }
+
+
+    // ── INVIO CON TASTO INVIO ─────────────────────────────────
+    // L'utente può premere Invio invece di cliccare il bottone
+    document.addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        const loginVisible = document.getElementById("form-login").classList.contains("visibile");
+        if (loginVisible) {
+          faiLogin();
+        } else {
+          faiRegistrazione();
+        }
+      }
+    });
+
+  </script>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pronto in Tavola — Home</title>
+  <link rel="stylesheet" href="/static/stile.css">
+  <style>
+    /* ── HERO (sezione grande con foto di sfondo) ──────────────
+       L'overlay scuro (rgba) rende il testo leggibile
+       sull'immagine di sfondo
+    */
+    .hero {
+      background-image:
+        linear-gradient(rgba(44,26,18,0.60), rgba(44,26,18,0.60)),
+        url('https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1400&q=80');
+      background-size: cover;
+      background-position: center;
+      min-height: 88vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .hero-etichetta {
+      font-size: 0.8rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 1rem;
+    }
+
+    .hero-titolo {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 7vw, 5rem);
+      font-style: italic;
+      color: var(--bianco);
+      line-height: 1.1;
+      margin-bottom: 1.2rem;
+    }
+
+    .hero-sottotitolo {
+      font-size: 1.1rem;
+      color: rgba(255,255,255,0.82);
+      line-height: 1.8;
+      margin-bottom: 2.5rem;
+      max-width: 500px;
+      margin-left: auto; margin-right: auto;
+    }
+
+    .hero-bottoni {
+      display: flex; gap: 1rem;
+      justify-content: center; flex-wrap: wrap;
+    }
+
+    /* ── SEZIONE "CHI SIAMO" ───────────────────────────────────*/
+    .sezione-chi {
+      padding: 5rem 2rem;
+      background: var(--crema-card);
+    }
+
+    .chi-griglia {
+      max-width: 1000px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4rem; align-items: center;
+    }
+
+    @media (max-width: 700px) {
+      .chi-griglia { grid-template-columns: 1fr; gap: 2rem; }
+    }
+
+    .chi-testo h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-style: italic;
+      color: var(--ruggine); margin-bottom: 1.2rem;
+    }
+
+    .chi-testo p {
+      color: var(--testo-light);
+      line-height: 1.9; margin-bottom: 1rem;
+    }
+
+    .chi-img img {
+      width: 100%; height: 360px;
+      object-fit: cover; border-radius: 12px;
+    }
+
+    /* ── SEZIONE CONTATTI ──────────────────────────────────────*/
+    .sezione-contatti { padding: 4rem 2rem; }
+
+    .contatti-griglia {
+      max-width: 900px; margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .contatto-card {
+      background: var(--crema-card);
+      border: 1px solid var(--bordo);
+      border-radius: 12px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+    }
+
+    .contatto-card h3 {
+      font-family: 'Playfair Display', serif;
+      color: var(--ruggine); margin-bottom: 0.8rem;
+    }
+
+    .contatto-card p {
+      color: var(--testo-light);
+      line-height: 1.9; font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ════════════════════════════════════════════
+       NAVBAR
+  ════════════════════════════════════════════ -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">Pronto in Tavola</a>
+    <ul class="navbar-links">
+      <li><a href="/" class="attivo">Home</a></li>
+      <!-- id="link-login" → nascosto da api.js se loggato -->
+      <li><a href="/login" id="link-login">Login</a></li>
+      <li><a href="/menu">Menu</a></li>
+      <li><a href="/carrello">Carrello</a></li>
+      <!-- id="link-logout" → mostrato da api.js se loggato -->
+      <li><a id="link-logout" onclick="logout()"></a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- HERO ───────────────────────────────────────────── -->
+    <section class="hero">
+      <div>
+        <p class="hero-etichetta">Osteria da asporto</p>
+        <h1 class="hero-titolo">Pronto in Tavola</h1>
+        <p class="hero-sottotitolo">
+          Il profumo della nostra cucina,<br>
+          direttamente alla tua porta.
+        </p>
+        <div class="hero-bottoni">
+          <a href="/menu" class="btn btn-bianco">Scopri i nostri piatti</a>
+          <a href="tel:+393476543210" class="btn btn-outline-bianco">Chiama ora</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CHI SIAMO ──────────────────────────────────────── -->
+    <section class="sezione-chi">
+      <div class="chi-griglia">
+        <div class="chi-testo">
+          <h2>Chi siamo</h2>
+          <p>
+            Siamo un'osteria da asporto che porta a casa tua il sapore
+            autentico della <strong>cucina tradizionale</strong>,
+            proprio come quella della nonna.
+          </p>
+          <p>
+            Lavoriamo <strong>esclusivamente d'asporto</strong>, per offrirti
+            comodità senza rinunciare alla qualità e al gusto della cucina casalinga.
+          </p>
+          <p>
+            Crediamo nei sapori di una volta, nelle cotture lente e negli
+            ingredienti scelti con cura.
+          </p>
+          <a href="/menu" class="btn btn-primario mt-3">Vedi il menu</a>
+        </div>
+        <div class="chi-img">
+          <img
+            src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=800&q=80"
+            alt="Interno della trattoria">
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTATTI ────────────────────────────────────────── -->
+    <section class="sezione-contatti">
+      <div class="contatti-griglia">
+
+        <div class="contatto-card">
+          <h3>📍 Dove siamo</h3>
+          <p>Via Po, 42<br>
+             <a href="tel:+393476543210" style="color:var(--ruggine)">
+               +39 347 654 3210
+             </a>
+          </p>
+        </div>
+
+        <div class="contatto-card">
+          <h3>🕐 Orari</h3>
+          <p>Lunedì: Chiuso<br>
+             Mar–Dom: 12:00–15:00<br>
+             Mar–Dom: 18:30–22:00
+          </p>
+        </div>
+
+        <div class="contatto-card">
+          <h3>🛵 Consegna</h3>
+          <p>Solo 2€ di consegna<br>
+             Gratuita sopra i 30€<br>
+             Zona città e dintorni
+          </p>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- FOOTER ─────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-sezione">
+        <h4>Pronto in Tavola</h4>
+        <p>Osteria da asporto<br>P.IVA: 12345678901</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Contatti</h4>
+        <p>Via Po, 42<br>+39 347 654 3210</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Orari</h4>
+        <p>Lun: Chiuso<br>Mar–Dom: 12:00–15:00 / 18:30–22:00</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Legale</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Carichiamo api.js → contiene aggiornaNavabar() e logout() -->
+  <script src="/static/api.js"></script>
+  <script>
+    // Aggiorniamo la navbar appena la pagina è pronta
+    aggiornaNavabar();
+  </script>
+
+</body>
+</html>

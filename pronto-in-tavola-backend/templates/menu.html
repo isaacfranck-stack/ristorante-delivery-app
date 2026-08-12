@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pronto in Tavola — Menu</title>
+  <link rel="stylesheet" href="/static/stile.css">
+  <style>
+    /* ── INTESTAZIONE PAGINA ───────────────────────────────────*/
+    .menu-header {
+      text-align: center;
+      padding: 3rem 2rem 2rem;
+      background: var(--crema-card);
+      border-bottom: 1px solid var(--bordo);
+    }
+
+    .menu-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.5rem;
+      font-style: italic;
+      color: var(--testo);
+    }
+
+    .menu-header p {
+      color: var(--testo-light);
+      margin-top: 0.5rem;
+      font-size: 0.95rem;
+    }
+
+    /* ── AREA CONTENUTO MENU ───────────────────────────────────*/
+    .menu-contenuto {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── TITOLO SEZIONE (Primi, Secondi, Dolci...) ─────────────*/
+    .sezione-titolo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--ruggine);
+      text-align: center;
+      margin: 2.5rem 0 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1.5px solid var(--bordo);
+    }
+
+    /* ── CARD SINGOLO PIATTO ───────────────────────────────────
+       Contiene: nome, descrizione, prezzo e il selettore quantità
+    */
+    .piatto-card {
+      background: var(--crema-card);
+      border: 1px solid var(--bordo);
+      border-radius: 10px;
+      padding: 1.1rem 1.3rem;
+      margin-bottom: 0.8rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      transition: box-shadow 0.2s;
+    }
+
+    .piatto-card:hover {
+      box-shadow: 0 2px 12px rgba(139,58,42,0.10);
+    }
+
+    /* Info del piatto (sinistra) */
+    .piatto-info { flex: 1; }
+
+    .piatto-nome {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--testo);
+      margin-bottom: 0.2rem;
+    }
+
+    .piatto-descrizione {
+      font-size: 0.83rem;
+      color: var(--testo-light);
+      line-height: 1.5;
+    }
+
+    /* Prezzo e controllo quantità (destra) */
+    .piatto-destra {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+
+    .piatto-prezzo {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--ruggine);
+      min-width: 60px;
+      text-align: right;
+    }
+
+    /* ── CONTROLLO QUANTITÀ ( - 0 + ) ─────────────────────────
+       Tre elementi: bottone meno, numero, bottone più
+       Uguale al mockup originale
+    */
+    .qty-ctrl {
+      display: flex;
+      align-items: center;
+      border: 1.5px solid var(--bordo);
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .qty-btn {
+      width: 32px; height: 32px;
+      background: transparent;
+      border: none;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: var(--ruggine);
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s;
+    }
+
+    .qty-btn:hover { background: rgba(139,58,42,0.08); }
+
+    .qty-num {
+      min-width: 26px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: var(--testo);
+    }
+
+    /* ── BARRA CARRELLO IN FONDO ───────────────────────────────
+       Appare quando l'utente aggiunge almeno un piatto.
+       "position: fixed" significa che rimane visibile
+       anche quando si scrolla la pagina.
+    */
+    .barra-carrello {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      background: var(--ruggine);
+      color: var(--bianco);
+      padding: 1rem 2rem;
+      display: none;           /* nascosta finché non ci sono piatti */
+      align-items: center;
+      justify-content: space-between;
+      z-index: 200;
+      box-shadow: 0 -4px 20px rgba(0,0,0,0.18);
+    }
+
+    .barra-carrello.visibile { display: flex; }
+
+    .barra-info { font-size: 0.95rem; }
+    .barra-info strong { font-size: 1.1rem; }
+
+    /* ── STATO CARICAMENTO ─────────────────────────────────────*/
+    .caricamento {
+      text-align: center;
+      padding: 3rem;
+      color: var(--testo-light);
+      font-style: italic;
+    }
+
+    /* Nota in fondo al menu */
+    .nota-menu {
+      text-align: center;
+      color: var(--testo-light);
+      font-size: 0.85rem;
+      line-height: 1.8;
+      padding: 1.5rem 1rem;
+      border-top: 1px solid var(--bordo);
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR ──────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">Pronto in Tavola</a>
+    <ul class="navbar-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/login" id="link-login">Login</a></li>
+      <li><a href="/menu" class="attivo">Menu</a></li>
+      <li><a href="/carrello">Carrello</a></li>
+      <li><a id="link-logout" onclick="logout()"></a></li>
+    </ul>
+  </nav>
+
+  <!-- INTESTAZIONE ────────────────────────────────────────── -->
+  <div class="menu-header">
+    <h1>Menu:</h1>
+    <p>Tutti i piatti preparati al momento con ingredienti freschi e di stagione.</p>
+  </div>
+
+  <!-- CONTENUTO MENU (riempito da JavaScript) ─────────────── -->
+  <div class="menu-contenuto">
+    <!--
+      id="menu-container" : qui JS inserisce le card dei piatti
+      Inizialmente mostriamo un messaggio di caricamento
+    -->
+    <div id="menu-container">
+      <p class="caricamento">⏳ Caricamento menu in corso...</p>
+    </div>
+
+    <div class="nota-menu">
+      Tutti i piatti sono preparati al momento con ingredienti freschi e di stagione.<br>
+      Confezionamento termico per mantenere la temperatura ottimale durante il trasporto.<br>
+      <strong>Buon appetito! 🍷</strong>
+    </div>
+  </div>
+
+  <!-- BARRA CARRELLO FISSA IN FONDO ───────────────────────── -->
+  <!--
+    Appare quando l'utente aggiunge piatti.
+    Mostra quanti piatti ci sono e il totale provvisorio.
+    Il bottone porta alla pagina carrello.html
+  -->
+  <div class="barra-carrello" id="barra-carrello">
+    <div class="barra-info">
+      🛒 <strong id="barra-num">0</strong> piatti •
+      Totale: <strong id="barra-totale">€0.00</strong>
+    </div>
+    <a href="/carrello" class="btn btn-bianco">
+      Vai al carrello →
+    </a>
+  </div>
+
+  <!-- FOOTER ──────────────────────────────────────────────── -->
+  <footer class="footer" style="margin-bottom: 0;">
+    <div class="footer-grid">
+      <div class="footer-sezione">
+        <h4>Pronto in Tavola</h4>
+        <p>P.IVA: 12345678901</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Contatti</h4>
+        <p>Via Po, 42 — +39 347 654 3210</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Orari</h4>
+        <p>Lun: Chiuso — Mar/Dom: 12:00–15:00 / 18:30–22:00</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Legale</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/api.js"></script>
+  <script>
+
+    // Aggiorna la navbar (login/logout)
+    aggiornaNavabar();
+
+    // ── STRUTTURA DATI DEL CARRELLO ───────────────────────────
+    /*
+      Il carrello è un oggetto JavaScript dove:
+        chiave = idProdotto  (es. 1)
+        valore = { id, nome, prezzo, quantita }
+
+      Lo salviamo nel sessionStorage: rimane solo finché
+      l'utente tiene aperta la scheda del browser.
+      (A differenza di localStorage che rimane per sempre)
+    */
+    let carrello = JSON.parse(sessionStorage.getItem("carrello") || "{}");
+
+
+    // ── SALVA IL CARRELLO ─────────────────────────────────────
+    function salvaCarrello() {
+      sessionStorage.setItem("carrello", JSON.stringify(carrello));
+      aggiornaBarra();  // aggiorna la barra in fondo
+    }
+
+
+    // ── AGGIORNA LA BARRA DEL CARRELLO ───────────────────────
+    function aggiornaBarra() {
+      // Calcoliamo totale e numero piatti dal carrello
+      let totale   = 0;
+      let numPiatti = 0;
+
+      // Object.values() prende tutti i valori dell'oggetto carrello
+      Object.values(carrello).forEach(piatto => {
+        totale    += piatto.prezzo * piatto.quantita;
+        numPiatti += piatto.quantita;
+      });
+
+      // Aggiorniamo i testi nella barra
+      document.getElementById("barra-num").textContent    = numPiatti;
+      document.getElementById("barra-totale").textContent = `€${totale.toFixed(2)}`;
+
+      // Mostriamo/nascondiamo la barra
+      const barra = document.getElementById("barra-carrello");
+      if (numPiatti > 0) {
+        barra.classList.add("visibile");
+      } else {
+        barra.classList.remove("visibile");
+      }
+
+      // Aggiorniamo anche i contatori sulle card
+      aggiornaContatori();
+    }
+
+
+    // ── AGGIORNA I CONTATORI SULLE CARD ──────────────────────
+    function aggiornaContatori() {
+      Object.keys(carrello).forEach(id => {
+        const el = document.getElementById(`qty-${id}`);
+        if (el) el.textContent = carrello[id].quantita;
+      });
+    }
+
+
+    // ── AGGIUNGI AL CARRELLO ──────────────────────────────────
+    function aggiungi(id, nome, prezzo) {
+      if (carrello[id]) {
+        // Se il piatto è già nel carrello, aumentiamo la quantità
+        carrello[id].quantita += 1;
+      } else {
+        // Altrimenti lo aggiungiamo con quantità 1
+        carrello[id] = { id, nome, prezzo, quantita: 1 };
+      }
+
+      // Aggiorniamo il numero sulla card
+      document.getElementById(`qty-${id}`).textContent = carrello[id].quantita;
+      salvaCarrello();
+    }
+
+
+    // ── RIMUOVI DAL CARRELLO ──────────────────────────────────
+    function rimuovi(id) {
+      if (!carrello[id]) return;  // non c'è niente da rimuovere
+
+      carrello[id].quantita -= 1;
+
+      // Se la quantità arriva a 0, eliminiamo il piatto dal carrello
+      if (carrello[id].quantita <= 0) {
+        delete carrello[id];
+        document.getElementById(`qty-${id}`).textContent = "0";
+      } else {
+        document.getElementById(`qty-${id}`).textContent = carrello[id].quantita;
+      }
+
+      salvaCarrello();
+    }
+
+
+    // ── CREA LA CARD HTML DI UN PIATTO ───────────────────────
+    /*
+      Questa funzione riceve un oggetto prodotto dal backend
+      e restituisce una stringa HTML pronta da inserire nella pagina.
+
+      I template literals (backtick `) ci permettono di scrivere
+      HTML su più righe con variabili dentro ${...}
+    */
+    function creaCardPiatto(p) {
+      // Quantità attuale nel carrello (0 se non è stato aggiunto)
+      const qAttuale = carrello[p.idProdotto]?.quantita || 0;
+
+      return `
+        <div class="piatto-card">
+          <div class="piatto-info">
+            <div class="piatto-nome">${p.nome}</div>
+            <div class="piatto-descrizione">${p.descrizione || ""}</div>
+          </div>
+          <div class="piatto-destra">
+            <div class="piatto-prezzo">€${p.prezzo.toFixed(2)}</div>
+
+            <!-- Controllo quantità: - [numero] + -->
+            <div class="qty-ctrl">
+              <button
+                class="qty-btn"
+                onclick="rimuovi(${p.idProdotto})"
+              >−</button>
+
+              <!-- id="qty-{id}" → aggiornato da aggiungi()/rimuovi() -->
+              <span class="qty-num" id="qty-${p.idProdotto}">${qAttuale}</span>
+
+              <button
+                class="qty-btn"
+                onclick="aggiungi(${p.idProdotto}, '${p.nome}', ${p.prezzo})"
+              >+</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+
+    // ── CARICA IL MENU DAL BACKEND ────────────────────────────
+    /*
+      Questa è la funzione principale.
+      1. Chiama GET /prodotti/disponibili tramite api.js
+      2. Raggruppa i piatti per categoria
+      3. Costruisce l'HTML e lo inserisce nella pagina
+    */
+    async function caricaMenu() {
+      const container = document.getElementById("menu-container");
+
+      try {
+        // Chiamata al backend → riceve un array di prodotti
+        const prodotti = await Prodotti.disponibili();
+
+        // Se il menu è vuoto mostriamo un messaggio
+        if (prodotti.length === 0) {
+          container.innerHTML = "<p class='caricamento'>Nessun piatto disponibile al momento.</p>";
+          return;
+        }
+
+        // ── RAGGRUPPA I PIATTI PER CATEGORIA ─────────────────
+        /*
+          Vogliamo mostrare:
+            "I Nostri Primi"   → piatti da 1 a 6
+            "I Nostri Secondi" → piatti da 7 a 12
+            "Dolci della Casa" → piatti da 13 a 15
+            "Bevande"          → piatti da 16 in poi
+
+          Usiamo gli idProdotto che sappiamo dal database:
+          1-6 = primi, 7-12 = secondi, 13-15 = dolci, 16+ = bevande
+        */
+        const categorie = {
+          "I Nostri Primi":    prodotti.filter(p => p.idProdotto >= 1  && p.idProdotto <= 6),
+          "I Nostri Secondi":  prodotti.filter(p => p.idProdotto >= 7  && p.idProdotto <= 12),
+          "Dolci della Casa":  prodotti.filter(p => p.idProdotto >= 13 && p.idProdotto <= 15),
+          "Bevande":           prodotti.filter(p => p.idProdotto >= 16),
+        };
+
+        // ── COSTRUIAMO L'HTML ─────────────────────────────────
+        let html = "";
+
+        // Per ogni categoria costruiamo il titolo + le card
+        for (const [titolo, piatti] of Object.entries(categorie)) {
+          if (piatti.length === 0) continue;  // saltiamo categorie vuote
+
+          html += `<h2 class="sezione-titolo">${titolo}</h2>`;
+
+          // Per ogni piatto nella categoria, creiamo la card
+          piatti.forEach(p => {
+            html += creaCardPiatto(p);
+          });
+        }
+
+        // Inseriamo l'HTML nella pagina
+        container.innerHTML = html;
+
+        // Aggiorniamo la barra per mostrare i piatti già nel carrello
+        aggiornaBarra();
+
+      } catch (errore) {
+        // Se il backend non è raggiungibile o dà errore
+        container.innerHTML = `
+          <p class="caricamento" style="color:var(--errore)">
+            ⚠️ Impossibile caricare il menu.<br>
+            Assicurati che il server Flask sia avviato con <strong>python app.py</strong><br>
+            Errore: ${errore.message}
+          </p>
+        `;
+      }
+    }
+
+    // Avviamo il caricamento del menu appena la pagina è pronta
+    caricaMenu();
+
+  </script>
+</body>
+</html>

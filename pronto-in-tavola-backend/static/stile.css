@@ -1,0 +1,190 @@
+/*
+  stile.css — Foglio di stile condiviso da TUTTE le pagine
+  ============================================================
+  Per usarlo in ogni pagina HTML scrivi nel <head>:
+    <link rel="stylesheet" href="stile.css">
+
+  PALETTE COLORI (dal mockup originale):
+    --ruggine   : marrone-ruggine, colore principale
+    --crema     : sfondo chiaro delle sezioni
+    --testo     : colore testo scuro
+*/
+
+/* ── FONT DA GOOGLE ───────────────────────────────────────────
+   Playfair Display : serif elegante, usato per i titoli
+   Lato             : sans-serif leggibile, usato per il corpo
+*/
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400;1,700&family=Lato:wght@300;400;700&display=swap');
+
+/* ── VARIABILI COLORE ─────────────────────────────────────────
+   Definite una volta qui, usate ovunque con var(--nome)
+   Se vuoi cambiare un colore → cambialo solo qui!
+*/
+:root {
+  --ruggine:       #8B3A2A;
+  --ruggine-hover: #A64B35;
+  --ruggine-light: #C4705A;
+  --crema:         #F5F0E8;
+  --crema-card:    #FDFAF4;
+  --testo:         #2C1A12;
+  --testo-light:   #7A6355;
+  --bordo:         #E0D5C5;
+  --bianco:        #FFFFFF;
+  --successo:      #1e8449;
+  --errore:        #c0392b;
+}
+
+/* ── RESET BASE ───────────────────────────────────────────────
+   I browser applicano margini/padding di default → li azzeriamo
+*/
+*, *::before, *::after {
+  margin: 0; padding: 0;
+  box-sizing: border-box;  /* il padding non aumenta la larghezza */
+}
+
+body {
+  font-family: 'Lato', sans-serif;
+  background: var(--crema);
+  color: var(--testo);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;  /* header + main + footer in colonna */
+}
+
+main { flex: 1; }
+
+/* ── NAVBAR ───────────────────────────────────────────────────*/
+.navbar {
+  background: var(--ruggine);
+  padding: 0 2rem;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.18);
+}
+
+.navbar-logo {
+  font-family: 'Playfair Display', serif;
+  color: var(--bianco);
+  font-size: 1.25rem;
+  font-weight: 600;
+  text-decoration: none;
+  letter-spacing: 0.02em;
+}
+
+.navbar-links { display: flex; gap: 2rem; list-style: none; }
+
+.navbar-links a {
+  color: rgba(255,255,255,0.82);
+  text-decoration: none;
+  font-size: 0.95rem;
+  transition: color 0.2s;
+}
+.navbar-links a:hover,
+.navbar-links a.attivo { color: var(--bianco); font-weight: 700; }
+
+/* Link logout che appare solo quando loggati */
+#link-logout { display: none; cursor: pointer; }
+
+/* ── FOOTER ───────────────────────────────────────────────────*/
+.footer {
+  background: var(--testo);
+  color: rgba(255,255,255,0.65);
+  padding: 2.5rem 2rem;
+  margin-top: auto;
+}
+.footer-grid {
+  max-width: 1100px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 2rem;
+}
+.footer-sezione h4 {
+  font-family: 'Playfair Display', serif;
+  color: var(--bianco);
+  margin-bottom: 0.7rem;
+}
+.footer-sezione p,
+.footer-sezione a {
+  font-size: 0.875rem; line-height: 1.9;
+  color: rgba(255,255,255,0.6);
+  text-decoration: none; display: block;
+}
+.footer-sezione a:hover { color: var(--bianco); }
+
+/* ── BOTTONI ──────────────────────────────────────────────────*/
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.8rem;
+  border: none; border-radius: 30px;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.95rem; font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  text-decoration: none; text-align: center;
+}
+.btn:active { transform: scale(0.97); }
+
+.btn-primario  { background: var(--ruggine); color: var(--bianco); }
+.btn-primario:hover { background: var(--ruggine-hover); }
+
+.btn-secondario {
+  background: transparent; color: var(--ruggine);
+  border: 2px solid var(--ruggine);
+}
+.btn-secondario:hover { background: var(--ruggine); color: var(--bianco); }
+
+.btn-bianco { background: var(--bianco); color: var(--ruggine); }
+.btn-bianco:hover { background: var(--crema); }
+
+.btn-outline-bianco {
+  background: transparent; color: var(--bianco);
+  border: 2px solid rgba(255,255,255,0.7);
+}
+.btn-outline-bianco:hover { background: rgba(255,255,255,0.15); }
+
+.btn-pieno { width: 100%; }
+
+/* ── FORM ─────────────────────────────────────────────────────*/
+.form-gruppo { margin-bottom: 1.2rem; }
+
+.form-gruppo label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  margin-bottom: 0.4rem;
+  color: var(--testo);
+}
+
+.form-gruppo input,
+.form-gruppo select,
+.form-gruppo textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--bordo);
+  border-radius: 8px;
+  font-family: 'Lato', sans-serif;
+  font-size: 0.95rem;
+  background: var(--bianco);
+  color: var(--testo);
+  transition: border-color 0.2s;
+}
+.form-gruppo input:focus,
+.form-gruppo select:focus,
+.form-gruppo textarea:focus {
+  outline: none;
+  border-color: var(--ruggine-light);
+}
+
+/* ── MESSAGGI FEEDBACK ────────────────────────────────────────
+   Mostrati/nascosti da JavaScript
+*/
+.msg { padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.9rem; margin-bottom: 1rem; display: none; }
+.msg-errore  { background: #fdecea; color: var(--errore);   border: 1px solid #f5c6c2; }
+.msg-successo{ background: #eafaf1; color: var(--successo); border: 1px solid #a9dfbf; }
+
+/* ── UTILITA' ─────────────────────────────────────────────────*/
+.mt-1{margin-top:0.5rem} .mt-2{margin-top:1rem} .mt-3{margin-top:1.5rem}
+.testo-centro{text-align:center}

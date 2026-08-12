@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pronto in Tavola — Carrello</title>
+  <link rel="stylesheet" href="/static/stile.css">
+  <style>
+    /* ── LAYOUT A DUE COLONNE (come nel mockup) ────────────────
+       Sinistra: form dati cliente
+       Destra:   riepilogo ordine + rider + stato
+    */
+    .carrello-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2.5rem;
+      align-items: start;
+    }
+
+    /* Su mobile le colonne si impilano */
+    @media (max-width: 780px) {
+      .carrello-wrapper { grid-template-columns: 1fr; }
+    }
+
+    /* ── INTESTAZIONE ──────────────────────────────────────────*/
+    .carrello-header {
+      padding: 2.5rem 2rem 1rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .carrello-header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      color: var(--testo);
+    }
+
+    /* ── SEZIONI DEL FORM ──────────────────────────────────────*/
+    .colonna-titolo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.1rem;
+      color: var(--testo);
+      margin-bottom: 1.2rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1.5px solid var(--bordo);
+    }
+
+    /* ── METODI DI PAGAMENTO (bottoni radio) ───────────────────*/
+    .metodo-btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1.5px solid var(--bordo);
+      border-radius: 8px;
+      background: var(--bianco);
+      text-align: left;
+      font-family: 'Lato', sans-serif;
+      font-size: 0.95rem;
+      cursor: pointer;
+      margin-bottom: 0.5rem;
+      transition: border-color 0.2s, background 0.2s;
+      color: var(--testo);
+    }
+
+    .metodo-btn:hover { border-color: var(--ruggine-light); }
+
+    /* Bottone selezionato */
+    .metodo-btn.selezionato {
+      border-color: var(--ruggine);
+      background: rgba(139,58,42,0.05);
+      font-weight: 700;
+    }
+
+    /* ── COLONNA DESTRA: RIEPILOGO ─────────────────────────────*/
+    .riepilogo-box {
+      background: var(--crema-card);
+      border: 1.5px solid var(--bordo);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .riepilogo-box h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1rem;
+      color: var(--testo);
+      margin-bottom: 1rem;
+    }
+
+    /* Lista piatti nel riepilogo */
+    .riepilogo-lista { list-style: none; }
+
+    .riepilogo-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.4rem 0;
+      border-bottom: 1px solid var(--bordo);
+      font-size: 0.9rem;
+    }
+
+    .riepilogo-item:last-child { border-bottom: none; }
+
+    .riepilogo-item span { color: var(--testo-light); }
+
+    /* Riga totale in evidenza */
+    .riepilogo-totale {
+      display: flex;
+      justify-content: space-between;
+      padding-top: 0.8rem;
+      font-weight: 700;
+      font-size: 1rem;
+    }
+
+    /* Campo grande per il totale (come nel mockup) */
+    .totale-grande {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--testo);
+      margin-top: 0.8rem;
+    }
+
+    .totale-grande span {
+      color: var(--ruggine);
+    }
+
+    /* ── BOX RIDER ─────────────────────────────────────────────*/
+    .rider-box {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    /* Avatar circolare del rider */
+    .rider-avatar {
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      background: var(--bordo);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      flex-shrink: 0;
+    }
+
+    .rider-info p { font-size: 0.85rem; color: var(--testo-light); }
+    .rider-info strong { color: var(--testo); }
+
+    /* ── BOX STATO ORDINE ──────────────────────────────────────*/
+    .stato-badge {
+      display: inline-block;
+      padding: 0.3rem 0.9rem;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      background: #e8f5e9;
+      color: #2e7d32;
+      margin-top: 0.3rem;
+    }
+
+    .nota-consegna {
+      font-size: 0.82rem;
+      color: var(--testo-light);
+      margin-top: 0.6rem;
+      line-height: 1.6;
+    }
+
+    /* Carrello vuoto */
+    .carrello-vuoto {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--testo-light);
+    }
+
+    .carrello-vuoto p { margin-bottom: 1.5rem; font-size: 1.1rem; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR ──────────────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/" class="navbar-logo">Pronto in Tavola</a>
+    <ul class="navbar-links">
+      <li><a href="/">Home</a></li>
+      <li><a href="/login" id="link-login">Login</a></li>
+      <li><a href="/menu">Menu</a></li>
+      <li><a href="/carrello" class="attivo">Carrello</a></li>
+      <li><a id="link-logout" onclick="logout()"></a></li>
+    </ul>
+  </nav>
+
+  <main>
+
+    <!-- INTESTAZIONE ──────────────────────────────────────── -->
+    <div class="carrello-header">
+      <h1>Carrello</h1>
+    </div>
+
+    <!-- CONTENUTO: mostrato da JS dopo aver controllato il carrello -->
+    <div id="contenuto-carrello"></div>
+
+  </main>
+
+  <!-- FOOTER ──────────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-grid">
+      <div class="footer-sezione">
+        <h4>Pronto in Tavola</h4>
+        <p>P.IVA: 12345678901</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Contatti</h4>
+        <p>Via Po, 42 — +39 347 654 3210</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Orari</h4>
+        <p>Lun: Chiuso — Mar/Dom: 12:00–15:00 / 18:30–22:00</p>
+      </div>
+      <div class="footer-sezione">
+        <h4>Legale</h4>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Cookie Policy</a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/static/api.js"></script>
+  <script>
+
+    aggiornaNavabar();
+
+    // ── LEGGIAMO IL CARRELLO DAL sessionStorage ───────────────
+    // Salvato dalla pagina menu.html
+    const carrello = JSON.parse(sessionStorage.getItem("carrello") || "{}");
+    const piatti   = Object.values(carrello);  // array dei piatti
+
+    // Metodo di pagamento selezionato (default: contanti)
+    let metodoPagamento = "contanti";
+
+
+    // ── CALCOLA TOTALE ────────────────────────────────────────
+    function calcolaTotale() {
+      return piatti.reduce((somma, p) => somma + p.prezzo * p.quantita, 0);
+    }
+
+    // ── CALCOLA COSTO CONSEGNA ────────────────────────────────
+    // Gratuita sopra 30€, altrimenti 2€
+    function costoConsegna(totale) {
+      return totale >= 30 ? 0 : 2;
+    }
+
+
+    // ── COSTRUISCI LA PAGINA ──────────────────────────────────
+    function costruisciPagina() {
+      const contenuto = document.getElementById("contenuto-carrello");
+
+      // ── CARRELLO VUOTO ────────────────────────────────────
+      if (piatti.length === 0) {
+        contenuto.innerHTML = `
+          <div class="carrello-vuoto">
+            <p>🛒 Il tuo carrello è vuoto.</p>
+            <a href="/menu" class="btn btn-primario">Torna al menu</a>
+          </div>
+        `;
+        return;
+      }
+
+      // Calcoliamo i totali
+      const subtotale  = calcolaTotale();
+      const consegna   = costoConsegna(subtotale);
+      const totaleFinale = subtotale + consegna;
+
+      // ── COSTRUIAMO L'HTML DEL RIEPILOGO ──────────────────
+      // Lista dei piatti per il riepilogo
+      let righeRiepilogo = piatti.map(p => `
+        <li class="riepilogo-item">
+          <span>${p.nome} × ${p.quantita}</span>
+          <span>€${(p.prezzo * p.quantita).toFixed(2)}</span>
+        </li>
+      `).join("");
+
+      // ── HTML COMPLETO ─────────────────────────────────────
+      contenuto.innerHTML = `
+        <div class="carrello-wrapper">
+
+          <!-- ════════════════════════════════════════
+               COLONNA SINISTRA: FORM DATI CLIENTE
+          ════════════════════════════════════════ -->
+          <div class="colonna-sinistra">
+
+            <h2 class="colonna-titolo">I tuoi dati</h2>
+
+            <!-- Messaggi feedback -->
+            <div id="msg-errore"   class="msg msg-errore"></div>
+            <div id="msg-successo" class="msg msg-successo"></div>
+
+            <!-- Nome -->
+            <div class="form-gruppo">
+              <label for="inp-nome">Nome completo *</label>
+              <input type="text" id="inp-nome"
+                     placeholder="Inserisci il tuo nome completo">
+            </div>
+
+            <!-- Telefono -->
+            <div class="form-gruppo">
+              <label for="inp-telefono">Numero di telefono *</label>
+              <input type="tel" id="inp-telefono"
+                     placeholder="Es. 333-1234567">
+            </div>
+
+            <!-- Indirizzo di consegna -->
+            <div class="form-gruppo">
+              <label for="inp-indirizzo">Indirizzo di consegna *</label>
+              <input type="text" id="inp-indirizzo"
+                     placeholder="Via, numero civico, zona (es. zona centro)">
+              <small style="color:var(--testo-light); font-size:0.8rem; margin-top:0.3rem; display:block">
+                💡 Scrivi la zona (es. "zona nord") per una consegna più rapida
+              </small>
+            </div>
+
+            <!-- Note aggiuntive -->
+            <div class="form-gruppo">
+              <label for="inp-note">Note aggiuntive</label>
+              <input type="text" id="inp-note"
+                     placeholder="Allergie, richieste particolari, ecc.">
+            </div>
+
+            <!-- ── METODO DI PAGAMENTO ──────────────────────
+                 Tre bottoni cliccabili (come nel mockup)
+            -->
+            <div class="form-gruppo">
+              <label>Metodo di pagamento *</label>
+              <button class="metodo-btn selezionato"
+                      onclick="selezionaMetodo(this, 'contanti')">
+                💵 Contanti alla consegna
+              </button>
+              <button class="metodo-btn"
+                      onclick="selezionaMetodo(this, 'carta')">
+                💳 Carta di credito
+              </button>
+              <button class="metodo-btn"
+                      onclick="selezionaMetodo(this, 'online')">
+                📱 Pagamento online
+              </button>
+            </div>
+
+            <!-- Bottone invio ordine -->
+            <button
+              class="btn btn-primario btn-pieno mt-2"
+              onclick="inviaOrdine()"
+              id="btn-invia"
+            >
+              Invia ordine
+            </button>
+
+            <p style="font-size:0.78rem; color:var(--testo-light); margin-top:0.6rem; text-align:center">
+              Il tuo nome del profilo non verrà condiviso.
+              Non inviare mai password.
+            </p>
+          </div>
+
+          <!-- ════════════════════════════════════════
+               COLONNA DESTRA: RIEPILOGO + RIDER + STATO
+          ════════════════════════════════════════ -->
+          <div class="colonna-destra">
+
+            <!-- RIEPILOGO ORDINE -->
+            <div class="riepilogo-box">
+              <h3>Riepilogo ordine:</h3>
+              <ul class="riepilogo-lista">
+                ${righeRiepilogo}
+              </ul>
+
+              <div style="border-top: 1px solid var(--bordo); margin-top: 0.8rem; padding-top: 0.8rem;">
+                <div class="riepilogo-totale">
+                  <span>Subtotale:</span>
+                  <span>€${subtotale.toFixed(2)}</span>
+                </div>
+                <div class="riepilogo-totale" style="font-weight:400; color:var(--testo-light)">
+                  <span>Prezzo di consegna:</span>
+                  <span>${consegna === 0 ? "Gratuita 🎉" : "€" + consegna.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <!-- Totale grande come nel mockup -->
+              <div class="totale-grande">
+                <span>€</span>
+                <strong id="totale-display">${totaleFinale.toFixed(2)}</strong>
+              </div>
+
+              <p class="nota-consegna">
+                Prezzo di consegna: 2€ —
+                La consegna è gratuita per ordini sopra i 30€
+              </p>
+            </div>
+
+            <!-- BOX RIDER (visibile dopo l'invio) -->
+            <div class="riepilogo-box" id="box-rider" style="display:none">
+              <h3>Rider assegnato:</h3>
+              <div class="rider-box">
+                <div class="rider-avatar" id="rider-avatar">🛵</div>
+                <div class="rider-info">
+                  <strong id="rider-nome">—</strong>
+                  <p id="rider-mezzo">—</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- BOX STATO ORDINE (visibile dopo l'invio) -->
+            <div class="riepilogo-box" id="box-stato" style="display:none">
+              <h3>Stato dell'ordine:</h3>
+              <div id="stato-badge" class="stato-badge">ricevuto</div>
+              <p class="nota-consegna">
+                🕐 Tempo di consegna previsto: <strong>30–45 minuti</strong>
+              </p>
+            </div>
+
+          </div><!-- fine colonna destra -->
+
+        </div><!-- fine wrapper -->
+      `;
+    }
+
+
+    // ── SELEZIONA METODO DI PAGAMENTO ────────────────────────
+    function selezionaMetodo(elemento, metodo) {
+      // Rimuoviamo "selezionato" da tutti i bottoni
+      document.querySelectorAll(".metodo-btn").forEach(b => {
+        b.classList.remove("selezionato");
+      });
+      // Aggiungiamo "selezionato" solo al bottone cliccato
+      elemento.classList.add("selezionato");
+      metodoPagamento = metodo;
+    }
+
+
+    // ── INVIA L'ORDINE AL BACKEND ─────────────────────────────
+    /*
+      Flusso completo:
+      1. Validazione dei campi
+      2. Crea o recupera il cliente (POST /clienti/)
+      3. Crea l'ordine (POST /ordini/) con i prodotti
+      4. Mostra il rider assegnato e lo stato
+      5. Svuota il carrello
+    */
+    async function inviaOrdine() {
+      // Leggiamo i valori dai campi input
+      const nome      = document.getElementById("inp-nome").value.trim();
+      const telefono  = document.getElementById("inp-telefono").value.trim();
+      const indirizzo = document.getElementById("inp-indirizzo").value.trim();
+
+      // ── Validazione ───────────────────────────────────────
+      if (!nome || !telefono || !indirizzo) {
+        mostraMsg("errore", "Compila tutti i campi obbligatori: nome, telefono e indirizzo.");
+        return;
+      }
+
+      // Disabilitiamo il bottone
+      const btn = document.getElementById("btn-invia");
+      btn.disabled    = true;
+      btn.textContent = "Invio in corso...";
+
+      try {
+        // ── STEP 1: Creiamo il cliente nel backend ────────
+        /*
+          POST /clienti/ → crea il cliente e restituisce il suo id
+          Usiamo l'id per collegarlo all'ordine
+        */
+        const cliente = await Clienti.crea(nome, telefono, indirizzo);
+
+        // ── STEP 2: Prepariamo la lista prodotti ──────────
+        /*
+          Il backend si aspetta:
+          [
+            { idProdotto: 1, quantita: 2 },
+            { idProdotto: 5, quantita: 1 },
+            ...
+          ]
+        */
+        const listaProdotti = piatti.map(p => ({
+          idProdotto: p.id,
+          quantita:   p.quantita
+        }));
+
+        // ── STEP 3: Creiamo l'ordine ──────────────────────
+        /*
+          POST /ordini/ → crea l'ordine con tutti i prodotti
+          Il backend calcola automaticamente il totale
+        */
+        const ordine = await Ordini.crea(
+          cliente.idCliente,
+          indirizzo,
+          listaProdotti
+        );
+
+        // ── STEP 4: Mostriamo il feedback ─────────────────
+        mostraMsg("successo", `✅ Ordine #${ordine.idOrdine} ricevuto! Grazie ${nome}!`);
+
+        // Mostriamo lo stato dell'ordine
+        document.getElementById("box-stato").style.display = "block";
+        document.getElementById("stato-badge").textContent = ordine.stato;
+
+        // Se c'è già un rider assegnato nell'ordine
+        if (ordine.idRider) {
+          mostraRider(ordine);
+        }
+
+        // Nascondiamo il bottone (ordine già inviato)
+        btn.style.display = "none";
+
+        // ── STEP 5: Svuotiamo il carrello ─────────────────
+        // L'ordine è stato mandato, il carrello non serve più
+        sessionStorage.removeItem("carrello");
+
+      } catch (errore) {
+        mostraMsg("errore", `Errore: ${errore.message}`);
+        btn.disabled    = false;
+        btn.textContent = "Invia ordine";
+      }
+    }
+
+
+    // ── MOSTRA I DATI DEL RIDER ───────────────────────────────
+    function mostraRider(ordine) {
+      // Per ora mostriamo un rider generico
+      // In un progetto avanzato si potrebbe chiamare GET /rider/{id}
+      document.getElementById("box-rider").style.display = "block";
+
+      // Emoji del mezzo in base al rider (semplificato)
+      const emoji = { "auto": "🚗", "moto": "🏍️", "fat-bike": "🚲" };
+
+      document.getElementById("rider-nome").textContent  = `Rider #${ordine.idRider}`;
+      document.getElementById("rider-mezzo").textContent = "In arrivo!";
+      document.getElementById("rider-avatar").textContent = "🛵";
+    }
+
+
+    // ── MOSTRA MESSAGGIO FEEDBACK ─────────────────────────────
+    function mostraMsg(tipo, testo) {
+      const id = tipo === "errore" ? "msg-errore" : "msg-successo";
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.textContent  = testo;
+      el.style.display = "block";
+
+      // Nascondiamo l'altro messaggio
+      const altro = tipo === "errore" ? "msg-successo" : "msg-errore";
+      const altroEl = document.getElementById(altro);
+      if (altroEl) altroEl.style.display = "none";
+    }
+
+
+    // ── AVVIAMO LA COSTRUZIONE DELLA PAGINA ──────────────────
+    costruisciPagina();
+
+  </script>
+</body>
+</html>
